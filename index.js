@@ -38,21 +38,23 @@ const animalNames = {
     wolf: "Wolves",
     zebra: "Zebras"
 }
+
 var Game;
 var autoCorrect = false;
 var showCorrect = false;
+
 window.addEventListener('unhandledrejection', function(event) {
     if (event.reason == 'SyntaxError: JSON Parse error: Unexpected identifier "html"') return;
     alert(event.reason)
     location.reload()
 });
+
 function runGame() {
     ReactDOM.render(loadingScreen, document.getElementById('root'))
     var pin = document.getElementById('pin').value
     var name = document.getElementById('name').value
     autoCorrect = document.getElementById('autoCorrect').checked
     showCorrect = document.getElementById('showCorrect').checked
-    autoCorrect = true
     try {
         Game = new Quizlet(pin, name);
     } catch(e) {
@@ -78,17 +80,20 @@ function runGame() {
         renderQuestionInfo(questionName, possibleAnswers, correctAnswer)
         if (autoCorrect) {
             Game.answer(correctAnswer)
-        } else {
-            // TODO: Add Answer Screen
-            Game.answer(possibleAnswers[1])
         }
     })
     Game.on('gameOver', (didWin) => {
         var gameOverScreen = <h1 className="text-center">Game Over! {didWin ? "You Won!" : "You Lost!" }</h1>
-        ReactDOM.render(gameOverScreen, document.getElementById(root))
+        ReactDOM.render(gameOverScreen, document.getElementById("root"))
     })
-    Game.on('answer', () => {
-        ReactDOM.render(<h1 className="text-center">Waiting Next Question</h1>, document.getElementById('root'))
+    Game.on('answer', (isCorrect, answerer) => {
+        var nextQuestionScreen = (
+            <div className="container text-center">
+                <h1>Waiting Next Question</h1>
+                <h2>{answerer} answered <span className={isCorrect ? "text-success" : "text-danger"}>{isCorrect ? "correctly" : "incorrectly"}</span></h2>
+            </div>
+        )
+        ReactDOM.render(nextQuestionScreen, document.getElementById('root'))
     })
 }
 
@@ -112,15 +117,14 @@ function renderQuestionInfo(name,choices,answer) {
     ReactDOM.render(questionScreen, document.getElementById("root"))
 }
 
-
 function choiceTemplate(choice, key, isCorrect, isDisabled) {
     if (!choice) return ""
     if (isCorrect && showCorrect) {
-        return <button className="btn btn-block btn-success" key={key}>{choice}</button>
+        return <button onClick={() => Game.answer(choice)} className="btn btn-block btn-success" key={key}>{choice}</button>
     } else if (!isCorrect && showCorrect) {
-        return <button className="btn btn-block btn-danger" key={key}>{choice}</button>
+        return <button onClick={() => Game.answer(choice)} className="btn btn-block btn-danger" key={key}>{choice}</button>
     } else {
-        return <button className="btn btn-block btn-primary" key={key}>{choice}</button>
+        return <button onClick={() => Game.answer(choice)} className="btn btn-block btn-primary" key={key}>{choice}</button>
     }
 }
 
