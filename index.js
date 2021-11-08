@@ -1,3 +1,11 @@
+// This may not work
+window.Error = function Error(errorData) {
+    if (errorData.toLowerCase().includes('react')) return; 
+    alert(errorData);
+    location.reload();
+}
+// This may not work
+
 const animalNames = {
     alligator: "Alligators",
     alpaca: "Alpacas",
