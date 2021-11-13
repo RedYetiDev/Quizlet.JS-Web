@@ -43,12 +43,6 @@ var Game;
 var autoCorrect = false;
 var showCorrect = false;
 
-window.addEventListener('unhandledrejection', function(event) {
-    if (event.reason == 'SyntaxError: JSON Parse error: Unexpected identifier "html"') return;
-    alert(event.reason)
-    location.reload()
-});
-
 function runGame() {
     ReactDOM.render(loadingScreen, document.getElementById('root'))
     var pin = document.getElementById('pin').value
@@ -61,6 +55,11 @@ function runGame() {
         alert(e);
         location.reload()
     }
+    delete Game.callbacks.error[0]
+    Game.on('error', (error) => {
+        alert(error);
+        location.reload();
+    })
     Game.joinGame()
     Game.on('connect', () => {
         ReactDOM.render(waitingScreen, document.getElementById('root'))
