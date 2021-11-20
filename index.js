@@ -1,5 +1,20 @@
 "use strict";
 
+function shuffle(array) {
+  let currentIndex = array.length,
+      randomIndex; // While there remain elements to shuffle...
+
+  while (currentIndex != 0) {
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--; // And swap it with the current element.
+
+    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+  }
+
+  return array;
+}
+
 const animalNames = {
   alligator: "Alligators",
   alpaca: "Alpacas",
@@ -43,6 +58,8 @@ const animalNames = {
 var Game;
 var autoCorrect = false;
 var showCorrect = false;
+var blockIncorrect = false;
+var shuffleAnswers = false;
 
 function runGame() {
   ReactDOM.render(loadingScreen, document.getElementById('root'));
@@ -50,6 +67,8 @@ function runGame() {
   var name = document.getElementById('name').value;
   autoCorrect = document.getElementById('autoCorrect').checked;
   showCorrect = document.getElementById('showCorrect').checked;
+  blockIncorrect = document.getElementById('blockIncorrect').checked;
+  shuffleAnswers = document.getElementById('shuffleAnswers').checked;
 
   try {
     Game = new Quizlet(pin, name);
@@ -82,6 +101,9 @@ function runGame() {
       Game.answer(correctAnswer);
     }
   });
+  Game.on('teamQuestion', (questionName, possibleAnswers, correctAnswer) => {
+    renderQuestionInfo(questionName, possibleAnswers, correctAnswer);
+  });
   Game.on('gameOver', didWin => {
     var gameOverScreen = /*#__PURE__*/React.createElement("h1", {
       className: "text-center"
@@ -96,13 +118,21 @@ function runGame() {
     }, isCorrect ? "correctly" : "incorrectly")));
     ReactDOM.render(nextQuestionScreen, document.getElementById('root'));
   });
+  Game.on('replay', () => {
+    ReactDOM.render(waitingScreen, document.getElementById('root'));
+  });
 }
 
 function renderQuestionInfo(name, choices, answer) {
   var questionScreenPart = /*#__PURE__*/React.createElement("h2", null, name);
   var choiceCards = [];
+
+  if (shuffleAnswers) {
+    shuffle(choices);
+  }
+
   choices.forEach((choice, idx) => {
-    choiceCards.push(choiceTemplate(choice, idx, choice == answer, false));
+    choiceCards.push(choiceTemplate(choice, idx, choice == answer));
   });
   var choiceScreenPart = /*#__PURE__*/React.createElement("div", {
     className: "d-grid gap-2"
@@ -113,8 +143,24 @@ function renderQuestionInfo(name, choices, answer) {
   ReactDOM.render(questionScreen, document.getElementById("root"));
 }
 
-function choiceTemplate(choice, key, isCorrect, isDisabled) {
+function choiceTemplate(choice, key, isCorrect) {
   if (!choice) return "";
+
+  if (autoCorrect) {
+    if (isCorrect) {
+      return /*#__PURE__*/React.createElement("button", {
+        className: "btn btn-block btn-success",
+        key: key,
+        disabled: true
+      }, choice);
+    } else {
+      return /*#__PURE__*/React.createElement("button", {
+        className: "btn btn-block btn-danger",
+        key: key,
+        disabled: true
+      }, choice);
+    }
+  }
 
   if (isCorrect && showCorrect) {
     return /*#__PURE__*/React.createElement("button", {
@@ -126,7 +172,8 @@ function choiceTemplate(choice, key, isCorrect, isDisabled) {
     return /*#__PURE__*/React.createElement("button", {
       onClick: () => Game.answer(choice),
       className: "btn btn-block btn-danger",
-      key: key
+      key: key,
+      disabled: blockIncorrect
     }, choice);
   } else {
     return /*#__PURE__*/React.createElement("button", {
@@ -169,20 +216,77 @@ const pinScreen = /*#__PURE__*/React.createElement("div", {
 })), /*#__PURE__*/React.createElement("div", {
   className: "mb-3 btn-group form-control"
 }, /*#__PURE__*/React.createElement("input", {
-  id: "autoCorrect",
+  id: "shuffleAnswers",
   className: "btn-check",
   type: "checkbox"
+}), /*#__PURE__*/React.createElement("label", {
+  className: "btn btn-outline-success",
+  htmlFor: "shuffleAnswers"
+}, "Shuffle Answer Order"), /*#__PURE__*/React.createElement("input", {
+  id: "autoCorrect",
+  className: "btn-check",
+  type: "checkbox",
+  onChange: () => {
+    if (document.getElementById('autoCorrect').checked) {
+      document.getElementById('blockIncorrect').disabled = true;
+      document.getElementById('showCorrect').disabled = true;
+      document.getElementById('showCorrect').checked = true;
+      document.getElementById('blockIncorrect').checked = true;
+      document.getElementById('bil').classList.add('btn-outline-success');
+      document.getElementById('bil').classList.remove('btn-outline-danger');
+    } else {
+      document.getElementById('bil').classList.remove('btn-outline-success');
+      document.getElementById('bil').classList.add('btn-outline-danger');
+      document.getElementById('blockIncorrect').disabled = true;
+      document.getElementById('showCorrect').disabled = false;
+      document.getElementById('showCorrect').checked = false;
+      document.getElementById('blockIncorrect').checked = false;
+    }
+  }
 }), /*#__PURE__*/React.createElement("label", {
   className: "btn btn-outline-success",
   htmlFor: "autoCorrect"
 }, "Auto Answer Correctly"), /*#__PURE__*/React.createElement("input", {
   id: "showCorrect",
   className: "btn-check",
-  type: "checkbox"
+  type: "checkbox",
+  onChange: () => {
+    if (!document.getElementById('showCorrect').checked) {
+      document.getElementById('blockIncorrect').checked = false;
+      document.getElementById('bil').classList.remove('btn-outline-success');
+      document.getElementById('bil').classList.add('btn-outline-danger');
+      document.getElementById('blockIncorrect').disabled = true;
+    } else {
+      document.getElementById('bil').classList.add('btn-outline-success');
+      document.getElementById('bil').classList.remove('btn-outline-danger');
+      document.getElementById('blockIncorrect').disabled = false;
+    }
+  }
 }), /*#__PURE__*/React.createElement("label", {
   className: "btn btn-outline-success",
   htmlFor: "showCorrect"
-}, "Show Correct Answers")), /*#__PURE__*/React.createElement("button", {
+}, "Show Correct Answers"), /*#__PURE__*/React.createElement("input", {
+  id: "blockIncorrect",
+  className: "btn-check",
+  type: "checkbox",
+  disabled: true,
+  onChange: () => {
+    if (!document.getElementById('showCorrect').checked) {
+      document.getElementById('blockIncorrect').checked = false;
+      document.getElementById('bil').classList.remove('btn-outline-success');
+      document.getElementById('bil').classList.add('btn-outline-danger');
+      document.getElementById('blockIncorrect').disabled = true;
+    } else {
+      document.getElementById('bil').classList.add('btn-outline-success');
+      document.getElementById('bil').classList.remove('btn-outline-danger');
+      document.getElementById('blockIncorrect').disabled = false;
+    }
+  }
+}), /*#__PURE__*/React.createElement("label", {
+  className: "btn btn-outline-danger",
+  id: "bil",
+  htmlFor: "blockIncorrect"
+}, "Disable Incorrect Answers")), /*#__PURE__*/React.createElement("button", {
   className: "btn btn-primary form-control",
   onClick: runGame
 }, "Join Game"));
