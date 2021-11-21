@@ -14,7 +14,6 @@ function shuffle(array) {
 
   return array;
 }
-
 const animalNames = {
   alligator: "Alligators",
   alpaca: "Alpacas",
@@ -77,7 +76,6 @@ function runGame() {
     location.reload();
   }
 
-  delete Game.callbacks.error[0];
   Game.on('error', error => {
     alert(error);
     location.reload();
