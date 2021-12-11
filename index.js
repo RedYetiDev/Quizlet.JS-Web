@@ -55,8 +55,8 @@ const animalNames = {
   wolf: "Wolves",
   zebra: "Zebras"
 };
+var Quizlet = module.exports
 var Game;
-var Quizlet = module.exports.Classic
 var autoCorrect = false;
 var showCorrect = false;
 var blockIncorrect = false;
