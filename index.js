@@ -62,6 +62,38 @@ var blockIncorrect = false;
 var shuffleAnswers = false;
 var showDetails = false;
 
+function spamGame() {
+  ReactDOM.render(loadingScreen, document.getElementById('root'));
+  var pin = document.getElementById('pin').value;
+
+  if (!parseInt(pin) || pin.length != 6) {
+    alert('The PIN must be a 6 digit number');
+    location.reload();
+  }
+
+  var name = document.getElementById('name').value;
+  Array(100).fill(0).forEach((i, botNumber) => {
+    console.log(botNumber);
+
+    try {
+      Game = new Quizlet(pin, name + (botNumber + 1).toString());
+    } catch (e) {
+      alert(e);
+      location.reload();
+    }
+
+    Game.on('error', error => {
+      alert(error);
+      location.reload();
+    });
+    Game.joinGame();
+    Game.on('connect', () => {
+      console.log('connected');
+      Game.leave();
+    });
+  });
+}
+
 function runGame() {
   ReactDOM.render(loadingScreen, document.getElementById('root'));
   var pin = document.getElementById('pin').value;
@@ -355,10 +387,17 @@ const pinScreen = /*#__PURE__*/React.createElement("div", {
 }), /*#__PURE__*/React.createElement("label", {
   className: "btn btn-outline-success",
   htmlFor: "showDetails"
-}, "Show Game Details")), /*#__PURE__*/React.createElement("button", {
-  className: "btn btn-primary form-control",
+}, "Show Game Details")), /*#__PURE__*/React.createElement("div", {
+  className: "mb-3"
+}, /*#__PURE__*/React.createElement("button", {
+  className: "btn btn-success form-control",
   onClick: runGame
-}, "Join Game"));
+}, "Join Game")), /*#__PURE__*/React.createElement("div", {
+  className: "mb-3"
+}, /*#__PURE__*/React.createElement("button", {
+  className: "btn btn-danger form-control",
+  onClick: spamGame
+}, "Flood Game")));
 const waitingScreen = /*#__PURE__*/React.createElement("div", {
   className: "container text-center"
 }, /*#__PURE__*/React.createElement("h1", null, "You're In!"), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("h4", {
