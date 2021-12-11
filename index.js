@@ -56,6 +56,7 @@ const animalNames = {
   zebra: "Zebras"
 };
 var Game;
+var Quizlet = module.exports.Classic
 var autoCorrect = false;
 var showCorrect = false;
 var blockIncorrect = false;
@@ -266,7 +267,7 @@ const pinScreen = /*#__PURE__*/React.createElement("div", {
   },
   className: "text-primary",
   href: "//github.com/RedYetiDev/Quizlet.JS"
-}, "Quizlet.JS"), " Web Version"), /*#__PURE__*/React.createElement("h4", null, "Made possible by ", /*#__PURE__*/React.createElement("a", {
+}, "Quizlet.JS"), " Web Version (Classic Only)"), /*#__PURE__*/React.createElement("h4", null, "Made possible by ", /*#__PURE__*/React.createElement("a", {
   style: {
     textDecoration: 'none'
   },

@@ -99,5 +99,5 @@ function require(req) {
 }
 
 var module = {
-    exports: this
+    exports: {}
 }
